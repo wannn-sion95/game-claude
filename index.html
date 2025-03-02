@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adventure Quest with Pyodide</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+  </head>
+  <body>
+    <h1>Adventure Quest (Python in the Browser)</h1>
+    <div id="output"></div>
+    <input id="input" placeholder="Enter your command..." />
+
+    <script type="text/python">
+      from js import document, console
+
+      # Game state
+      game_state = {
+        "player": {
+          "name": "",
+          "health": 100,
+          "max_health": 100,
+          "inventory": [],
+          "equipped_weapon": None,
+          "equipped_armor": None,
+        },
+        "current_location": "village",
+        "visited_locations": set(),
+        "game_time": 0,
+        "enemies_defeated": 0,
+      }
+
+      # Display text in the game output
+      def display_text(text):
+        output = document.getElementById("output")
+        p = document.createElement("p")
+        p.textContent = text
+        output.appendChild(p)
+        output.scrollTop = output.scrollHeight
+
+      # Process player commands
+      def process_command(command):
+        words = command.lower().split()
+        action = words[0]
+        target = " ".join(words[1:])
+
+        if action == "look":
+          display_text("You look around.")
+        elif action == "go":
+          display_text(f"You go to {target}.")
+        else:
+          display_text("I don't understand that command.")
+
+      # Handle user input
+      def handle_input(event):
+        if event.key == "Enter":
+          command = document.getElementById("input").value.strip()
+          if command:
+            display_text(f"> {command}")
+            process_command(command)
+            document.getElementById("input").value = ""
+
+      # Set up event listener
+      document.getElementById("input").addEventListener("keyup", handle_input)
+
+      # Start the game
+      display_text("Welcome to Adventure Quest!")
+      display_text("Type 'look' to look around or 'go [location]' to move.")
+    </script>
+
+    <script>
+      async function main() {
+        let pyodide = await loadPyodide();
+        pyodide.runPython(`
+        from js import document
+        document.getElementById("output").textContent = "Python is running!"
+      `);
+      }
+      main();
+    </script>
+  </body>
+</html>
